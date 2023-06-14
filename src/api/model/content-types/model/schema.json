@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "models",
+  "info": {
+    "singularName": "model",
+    "pluralName": "models",
+    "displayName": "Model",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "acronym": {
+      "type": "string"
+    },
+    "cod_gamma_mod": {
+      "type": "string"
+    }
+  }
+}
