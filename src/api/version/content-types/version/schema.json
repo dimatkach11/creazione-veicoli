@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "versions",
+  "info": {
+    "singularName": "version",
+    "pluralName": "versions",
+    "displayName": "Version"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "cod_gamma_mod": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    }
+  }
+}

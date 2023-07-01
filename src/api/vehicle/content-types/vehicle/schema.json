@@ -24,6 +24,10 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::model.model"
+    },
+    "brand2model__acronym2version__cod_gamma_mod": {
+      "type": "customField",
+      "customField": "plugin::custom-fields.custom-select"
     }
   }
 }

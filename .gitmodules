@@ -1,0 +1,3 @@
+[submodule "src/plugins/strapi-google-maps"]
+	path = src/plugins/strapi-google-maps
+	url = git@github.com:amicaldo/strapi-google-maps.git
