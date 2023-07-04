@@ -5,6 +5,39 @@ import { Flex } from "@strapi/design-system";
 import { request, useCMEditViewDataManager } from "@strapi/helper-plugin";
 import pluginId from "../pluginId";
 import Collection from "./collection/Collection";
+import { async } from "../../../../../../build/4238.449f7f96.chunk";
+
+const fetchCollection = async (collectionName, filter) => {
+  const requestURL = `/${pluginId}/custom-select`;
+  const data = await request(requestURL, {
+    method: "POST",
+    body: { collectionTypeNames: [collectionName], filter },
+  });
+
+  return data.collections;
+};
+
+const initialOptions = async (
+  _collectionTypes,
+  _value,
+  collectionTypeNames
+) => {
+  let count = 0;
+  for (const collectionTypeName of collectionTypeNames) {
+    if (!_collectionTypes[count].entities.length) {
+      const collection = await fetchCollection(
+        collectionTypeName,
+        _value[collectionTypeName].relationField
+      );
+      if (collection?.[0].entities) {
+        _collectionTypes[count].entities = collection[0].entities;
+      }
+      console.log(_collectionTypes);
+    }
+    count++;
+  }
+  return _collectionTypes;
+};
 
 export default function Input({
   onChange,
@@ -29,16 +62,10 @@ export default function Input({
     return { name: models[index].split("__")[1] };
   });
 
-  const fetchCollection = async (collectionName, filter) => {
-    const requestURL = `/${pluginId}/custom-select`;
-    const data = await request(requestURL, {
-      method: "POST",
-      body: { collectionTypeNames: [collectionName], filter },
-    });
-
-    return data.collections;
-  };
   useEffect(() => {
+    const _value = JSON.parse(value);
+    console.log(_value);
+
     fetchCollection(collectionTypeNames[0]).then((collection) => {
       if (collection) {
         const _collectionTypes = collectionTypeNames.map((name, index) => {
@@ -60,7 +87,15 @@ export default function Input({
           };
         });
 
-        setCollections(_collectionTypes);
+        if (_value) {
+          initialOptions(_collectionTypes, _value, collectionTypeNames).then(
+            (_collectionTypes) => {
+              setCollections(_collectionTypes);
+            }
+          );
+        } else {
+          setCollections(_collectionTypes);
+        }
       }
     });
   }, []);
@@ -85,7 +120,7 @@ export default function Input({
         (collection) => collection.name === nextCollectionName
       );
       const entity = collection.entities.find(
-        (entity) => entity.name == _value[collection.name]
+        (entity) => entity.name == _value[collection.name].val
       );
 
       const filter = {
@@ -95,28 +130,17 @@ export default function Input({
 
       return await fetchCollection(nextCollectionName, filter);
     }
-    return null;
-
     return collections;
-  };
-
-  const enableCollection = (collections, value) => {
-    if (value) {
-      collections.forEach((collection, index) => {
-        if (collection._selected) {
-          // console.log(_collections[index + 1]);
-          collections[index + 1]._disabled = false;
-        }
-      });
-    }
   };
 
   useEffect(() => {
     const _value = JSON.parse(value);
-
+    let _valueContentTypeNames = null;
     let _collections = [];
     if (_value != null) {
-      _collections = collections.map((collection) => {
+      _valueContentTypeNames = Object.keys(_value);
+
+      _collections = collections.map((collection, index) => {
         if (_value[collection.name] != undefined) {
           return { ...collection, _selected: true };
         }
@@ -129,11 +153,28 @@ export default function Input({
       });
     }
 
+    let temp = true;
+    _collections = _collections.map((collection, index) => {
+      // debugger;
+      if (temp && !collection._selected) {
+        temp = false;
+      }
+      if (index && !temp) {
+        // console.log(collection);
+        return {
+          ...collection,
+          entities: [],
+          _selected: false,
+        };
+      }
+
+      return collection;
+    });
+
     updateCollectionEntities(_collections).then((response) => {
-      // enableCollection(_collections, _value);
       if (response) {
         _collections = _collections.map((collection, index) => {
-          console.log(collection);
+          // console.log(collection);
 
           if (collection.name === response[0].name) {
             collection["entities"] = response[0].entities;
@@ -170,37 +211,3 @@ export default function Input({
 Input.defaultProps = {
   value: null,
 };
-
-// setCollections((prev) =>
-//         prev.map((collection, index) => {
-//           if (_value[collection.name] != undefined) {
-//             count = index + 1;
-//             return { ...collection, _selected: true };
-//           }
-
-//           if (index && index === count) {
-//             const entity = prev[index - 1].entities.find(
-//               (entity) => entity.name === _value[prev[index - 1].name]
-//             );
-//             const relationField = { ...collection._relationField };
-//             relationField.value = entity[relationField.name];
-
-//             const entities = collection.entities.filter(
-//               (entity) => entity[relationField.name] === relationField.value
-//             );
-//             console.log(
-//               entity,
-//               _value[prev[index - 1].name],
-//               relationField,
-//               entities
-//             );
-//             return {
-//               ...collection,
-//               _disabled: false,
-//               entities,
-//             };
-//           }
-
-//           return collection;
-//         })
-//       );
